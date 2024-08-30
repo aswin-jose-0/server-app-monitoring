@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  fastapi:
+    build: .
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./app:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    logging:
+          driver: loki
+          options:
+            loki-url: "http://loki:3100/loki/api/v1/push"
+    networks:
+      - monitoring-network
+networks:
+  monitoring-network:
+    external: true

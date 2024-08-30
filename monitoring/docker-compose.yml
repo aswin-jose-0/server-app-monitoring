@@ -1,0 +1,45 @@
+version: '3.7'
+
+services:
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./prometheus:/prometheus
+    command:
+      - '--config.file=/prometheus/prometheus.yml'
+    networks:
+      - monitoring-network
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - '3001:3000'
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=secret
+    networks:
+      - monitoring-network
+
+  loki:
+    image: grafana/loki:2.7.0
+    ports:
+      - '3100:3100'
+    volumes:
+      - ./loki-config.yaml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    user: "0:0"  # Run as root to avoid permission issues
+  
+    networks:
+      - monitoring-network
+
+
+volumes:
+  prometheus:
+  grafana-data:
+  loki-data:
+
+networks:
+  monitoring-network:
+    external: true

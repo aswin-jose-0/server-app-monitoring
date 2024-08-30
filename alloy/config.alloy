@@ -1,0 +1,31 @@
+logging {
+  level = "info"
+  format = "logfmt"
+}
+
+prometheus.exporter.cadvisor "integrations_cadvisor" {
+  docker_only = true
+}
+
+discovery.relabel "integrations_cadvisor" {
+  targets = prometheus.exporter.cadvisor.integrations_cadvisor.targets
+  rule {
+    target_label = "job"
+    replacement = "integrations/docker"
+  }
+  rule {
+    target_label = "instance"
+    replacement = constants.hostname
+  }
+}
+
+prometheus.scrape "integrations_cadvisor" {
+  targets = discovery.relabel.integrations_cadvisor.output
+  forward_to = [prometheus.remote_write.default.receiver]
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = "http://prometheus:9090/api/v1/write"
+  }
+}
